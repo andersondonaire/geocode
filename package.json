@@ -1,0 +1,24 @@
+{
+  "name": "busca-lat-lon",
+  "version": "1.0.0",
+  "description": "Sistema de busca de latitude e longitude para endereços brasileiros",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start-advanced": "node server-advanced.js",
+    "dev": "nodemon server.js",
+    "dev-advanced": "nodemon server-advanced.js"
+  },
+  "keywords": ["geocoding", "latitude", "longitude", "brasil", "enderecos"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

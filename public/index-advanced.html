@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Geocodificação OTIMIZADO - 30k+ Registros</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .performance-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #ff6b6b;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .performance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,107,107,0.1) 100%);
+            pointer-events: none;
+        }
+
+        .performance-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .performance-label {
+            color: #666;
+            font-size: 0.9em;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .config-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .config-item label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .config-item input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none;
+            border: 2px solid #dee2e6;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .progress-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-eta {
+            font-size: 0.9em;
+            color: #666;
+            background: #fff;
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b 0%, #4ecdc4 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .progress-stat {
+            text-align: center;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-stat-number {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-stat-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .estimativa-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .estimativa-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .estimativa-item {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .estimativa-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .estimativa-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        tr:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, rgba(255,107,107,0.05) 100%);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-cached {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #b8e6f1 100%);
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .coordinates {
+            font-family: monospace;
+            font-size: 0.85em;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .sistema-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .controls, .config-grid, .performance-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            table {
+                font-size: 0.8em;
+            }
+            
+            th, td {
+                padding: 6px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Sistema de Geocodificação OTIMIZADO</h1>
+            <div class="subtitle">✨ Preparado para 30.000+ Registros</div>
+            <p>Sistema avançado com cache, processamento em lotes, retry automático e monitoramento em tempo real</p>
+        </div>
+
+        <div class="content">
+            <div id="alertContainer"></div>
+
+            <div class="performance-grid">
+                <div class="performance-card">
+                    <div class="performance-number" id="totalClientes">-</div>
+                    <div class="performance-label">Total de Clientes</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-number" id="geocodificados">-</div>
+                    <div class="performance-label">Geocodificados</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-number" id="pendentes">-</div>
+                    <div class="performance-label">Pendentes</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-number" id="taxaSucesso">-</div>
+                    <div class="performance-label">Taxa de Sucesso</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-number" id="cacheHits">-</div>
+                    <div class="performance-label">Cache Hits</div>
+                </div>
+                <div class="performance-card">
+                    <div class="performance-number" id="memoriaUso">-</div>
+                    <div class="performance-label">Uso de Memória</div>
+                </div>
+            </div>
+
+            <div class="estimativa-panel" id="estimativaPanel">
+                <h3>📊 Estimativa de Processamento</h3>
+                <div class="estimativa-grid">
+                    <div class="estimativa-item">
+                        <div class="estimativa-value" id="tempoEstimado">-</div>
+                        <div class="estimativa-label">Tempo Estimado</div>
+                    </div>
+                    <div class="estimativa-item">
+                        <div class="estimativa-value" id="registrosPendentes">-</div>
+                        <div class="estimativa-label">Registros Pendentes</div>
+                    </div>
+                    <div class="estimativa-item">
+                        <div class="estimativa-value" id="rateLimitAtual">-</div>
+                        <div class="estimativa-label">Rate Limit (ms)</div>
+                    </div>
+                    <div class="estimativa-item">
+                        <div class="estimativa-value" id="loteSize">-</div>
+                        <div class="estimativa-label">Tamanho do Lote</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-panel">
+                <h3>⚙️ Configuração do Sistema</h3>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="rateLimitInput">Rate Limit (ms)</label>
+                        <input type="number" id="rateLimitInput" min="500" max="5000" value="1000">
+                    </div>
+                    <div class="config-item">
+                        <label for="batchSizeInput">Tamanho do Lote</label>
+                        <input type="number" id="batchSizeInput" min="10" max="1000" value="100">
+                    </div>
+                    <div class="config-item">
+                        <label for="maxRetriesInput">Máx. Tentativas</label>
+                        <input type="number" id="maxRetriesInput" min="1" max="10" value="3">
+                    </div>
+                </div>
+                <button class="btn btn-info" onclick="atualizarConfiguracao()">🔧 Aplicar Configuração</button>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="iniciarGeocodificacaoOtimizada()" id="btnIniciarOtimizado">
+                    🚀 Iniciar Processamento Otimizado
+                </button>
+                <button class="btn btn-success" onclick="carregarDados()">
+                    🔄 Atualizar Dados
+                </button>
+                <button class="btn btn-info" onclick="carregarEstimativa()">
+                    📊 Calcular Estimativa
+                </button>
+                <button class="btn btn-warning" onclick="baixarRelatorioDetalhado()">
+                    📈 Relatório Detalhado
+                </button>
+                <button class="btn btn-danger" onclick="limparCache()">
+                    🗑️ Limpar Cache
+                </button>
+            </div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-header">
+                    <div class="progress-title" id="progressTitle">Processando...</div>
+                    <div class="progress-eta" id="progressEta">ETA: Calculando...</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-stats">
+                    <div class="progress-stat">
+                        <div class="progress-stat-number" id="progressProcessados">0</div>
+                        <div class="progress-stat-label">Processados</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-number" id="progressSucessos">0</div>
+                        <div class="progress-stat-label">Sucessos</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-number" id="progressErros">0</div>
+                        <div class="progress-stat-label">Erros</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-number" id="progressCache">0</div>
+                        <div class="progress-stat-label">Cache</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-number" id="progressLote">0</div>
+                        <div class="progress-stat-label">Lote Atual</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-number" id="progressVelocidade">0</div>
+                        <div class="progress-stat-label">Items/min</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Endereço</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Status</th>
+                            <th>Processado em</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientesTable">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">
+                                <div class="loading"></div>
+                                Carregando dados...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="sistema-status" id="sistemaStatus">
+        Sistema: Iniciando...
+    </div>
+
+    <script>
+        let processamentoAtivo = false;
+        let intervalId = null;
+        let statusInterval = null;
+        let startTime = null;
+
+        // Carrega dados ao inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarDados();
+            carregarEstimativa();
+            iniciarMonitoramentoStatus();
+        });
+
+        function iniciarMonitoramentoStatus() {
+            statusInterval = setInterval(atualizarStatusSistema, 5000);
+            atualizarStatusSistema();
+        }
+
+        async function atualizarStatusSistema() {
+            try {
+                const response = await fetch('/api/status-sistema');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const status = data.data;
+                    document.getElementById('sistemaStatus').textContent = 
+                        `${status.totalClientes} clientes | ${status.memoria.used} RAM | ${status.uptime}s uptime`;
+                    
+                    document.getElementById('memoriaUso').textContent = status.memoria.used;
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+            }
+        }
+
+        async function carregarDados() {
+            try {
+                showAlert('Carregando dados dos clientes...', 'info');
+                
+                const response = await fetch('/api/clientes-todos');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderizarTabela(data.data.slice(0, 100)); // Mostra apenas os primeiros 100
+                    atualizarEstatisticas(data.data);
+                    hideAlert();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showAlert('Erro ao carregar dados: ' + error.message, 'error');
+            }
+        }
+
+        async function carregarEstimativa() {
+            try {
+                const response = await fetch('/api/estimativa');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const est = data.data;
+                    document.getElementById('tempoEstimado').textContent = `${est.tempoHoras}h`;
+                    document.getElementById('registrosPendentes').textContent = est.pendentes;
+                    document.getElementById('rateLimitAtual').textContent = est.configuracao.rateLimitDelay;
+                    document.getElementById('loteSize').textContent = est.configuracao.batchSize;
+                    
+                    // Atualiza campos de configuração
+                    document.getElementById('rateLimitInput').value = est.configuracao.rateLimitDelay;
+                    document.getElementById('batchSizeInput').value = est.configuracao.batchSize;
+                    document.getElementById('maxRetriesInput').value = est.configuracao.maxRetries;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estimativa:', error);
+            }
+        }
+
+        function renderizarTabela(clientes) {
+            const tbody = document.getElementById('clientesTable');
+            
+            if (clientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">Nenhum cliente encontrado</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = clientes.map(cliente => `
+                <tr>
+                    <td>${cliente.id}</td>
+                    <td>${cliente.nome}</td>
+                    <td title="${cliente.endereco_formatado || cliente.endereco}">${cliente.endereco}</td>
+                    <td>${cliente.latitude ? `<span class="coordinates">${cliente.latitude.toFixed(6)}</span>` : '-'}</td>
+                    <td>${cliente.longitude ? `<span class="coordinates">${cliente.longitude.toFixed(6)}</span>` : '-'}</td>
+                    <td>
+                        <span class="status-badge ${getStatusClass(cliente)}">
+                            ${getStatusText(cliente)}
+                        </span>
+                    </td>
+                    <td>${cliente.data_geocodificacao ? new Date(cliente.data_geocodificacao).toLocaleString('pt-BR') : '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusClass(cliente) {
+            if (cliente.cached) return 'status-cached';
+            if (cliente.geocoded && cliente.latitude && cliente.longitude) return 'status-success';
+            if (cliente.geocoded === false) return 'status-error';
+            return 'status-pending';
+        }
+
+        function getStatusText(cliente) {
+            if (cliente.cached) return '🎯 Cache';
+            if (cliente.geocoded && cliente.latitude && cliente.longitude) return '✅ Sucesso';
+            if (cliente.geocoded === false) return '❌ Erro';
+            return '⏳ Pendente';
+        }
+
+        function atualizarEstatisticas(clientes) {
+            const total = clientes.length;
+            const geocodificados = clientes.filter(c => c.geocoded && c.latitude && c.longitude).length;
+            const pendentes = total - geocodificados;
+            const cacheHits = clientes.filter(c => c.cached).length;
+            const taxaSucesso = total > 0 ? ((geocodificados / total) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalClientes').textContent = total.toLocaleString('pt-BR');
+            document.getElementById('geocodificados').textContent = geocodificados.toLocaleString('pt-BR');
+            document.getElementById('pendentes').textContent = pendentes.toLocaleString('pt-BR');
+            document.getElementById('taxaSucesso').textContent = `${taxaSucesso}%`;
+            document.getElementById('cacheHits').textContent = cacheHits.toLocaleString('pt-BR');
+        }
+
+        async function atualizarConfiguracao() {
+            try {
+                const config = {
+                    rateLimitDelay: parseInt(document.getElementById('rateLimitInput').value),
+                    batchSize: parseInt(document.getElementById('batchSizeInput').value),
+                    maxRetries: parseInt(document.getElementById('maxRetriesInput').value)
+                };
+
+                const response = await fetch('/api/configuracao', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Configuração atualizada com sucesso!', 'success');
+                    carregarEstimativa();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showAlert('Erro ao atualizar configuração: ' + error.message, 'error');
+            }
+        }
+
+        async function iniciarGeocodificacaoOtimizada() {
+            if (processamentoAtivo) {
+                showAlert('Processamento já está em andamento!', 'warning');
+                return;
+            }
+
+            try {
+                const btnIniciar = document.getElementById('btnIniciarOtimizado');
+                btnIniciar.disabled = true;
+                btnIniciar.innerHTML = '<div class="loading"></div>Iniciando Processamento Otimizado...';
+
+                const response = await fetch('/api/geocodificar-otimizado', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resumir: true })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    processamentoAtivo = true;
+                    startTime = Date.now();
+                    showAlert(`Processamento otimizado iniciado! ${data.estimativa.pendentes} registros pendentes. Tempo estimado: ${data.estimativa.tempoHoras}h`, 'info');
+                    mostrarProgresso();
+                    iniciarMonitoramento();
+                } else {
+                    throw new Error(data.error);
+                }
+
+            } catch (error) {
+                showAlert('Erro ao iniciar geocodificação: ' + error.message, 'error');
+                resetarBotaoIniciar();
+            }
+        }
+
+        function iniciarMonitoramento() {
+            intervalId = setInterval(async () => {
+                try {
+                    const response = await fetch('/api/progresso-detalhado');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        if (data.ativo && data.progresso) {
+                            atualizarProgressoDetalhado(data.progresso, data.estatisticas);
+                        } else if (!data.ativo && data.progresso && data.progresso.concluido) {
+                            finalizarProcessamento(data.progresso.estatisticas);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao monitorar progresso:', error);
+                }
+            }, 2000);
+        }
+
+        function atualizarProgressoDetalhado(progresso, stats) {
+            const porcentagem = progresso.total > 0 ? (progresso.processados / progresso.total) * 100 : 0;
+            
+            // Barra de progresso
+            document.getElementById('progressFill').style.width = `${porcentagem}%`;
+            document.getElementById('progressTitle').textContent = 
+                `Lote ${progresso.lote || 1}/${progresso.totalLotes || 1} - ${progresso.atual || 'Processando...'}`;
+            
+            // ETA
+            if (startTime && progresso.processados > 0) {
+                const elapsed = (Date.now() - startTime) / 1000;
+                const rate = progresso.processados / elapsed;
+                const remaining = progresso.total - progresso.processados;
+                const eta = remaining / rate;
+                document.getElementById('progressEta').textContent = 
+                    `ETA: ${Math.round(eta / 60)}min`;
+                document.getElementById('progressVelocidade').textContent = Math.round(rate * 60);
+            }
+
+            // Estatísticas
+            document.getElementById('progressProcessados').textContent = progresso.processados;
+            document.getElementById('progressSucessos').textContent = stats?.success || 0;
+            document.getElementById('progressErros').textContent = stats?.errors || 0;
+            document.getElementById('progressCache').textContent = stats?.cached || 0;
+            document.getElementById('progressLote').textContent = progresso.lote || 1;
+        }
+
+        function finalizarProcessamento(estatisticas) {
+            clearInterval(intervalId);
+            processamentoAtivo = false;
+            
+            document.getElementById('progressTitle').textContent = 'Processamento Concluído!';
+            document.getElementById('progressEta').textContent = 'Finalizado';
+            
+            const tempoTotal = estatisticas ? Math.round((new Date(estatisticas.endTime) - new Date(estatisticas.startTime)) / 1000) : 0;
+            showAlert(`Geocodificação concluída! Tempo total: ${Math.round(tempoTotal/60)} minutos. ${estatisticas?.success || 0} sucessos, ${estatisticas?.errors || 0} erros.`, 'success');
+            
+            setTimeout(() => {
+                esconderProgresso();
+                carregarDados();
+                carregarEstimativa();
+                resetarBotaoIniciar();
+            }, 3000);
+        }
+
+        function mostrarProgresso() {
+            document.getElementById('progressContainer').style.display = 'block';
+        }
+
+        function esconderProgresso() {
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        function resetarBotaoIniciar() {
+            const btnIniciar = document.getElementById('btnIniciarOtimizado');
+            btnIniciar.disabled = false;
+            btnIniciar.innerHTML = '🚀 Iniciar Processamento Otimizado';
+        }
+
+        async function baixarRelatorioDetalhado() {
+            try {
+                const response = await fetch('/api/relatorio-detalhado');
+                const data = await response.json();
+
+                if (data.success) {
+                    const blob = new Blob([JSON.stringify(data.data, null, 2)], 
+                        { type: 'application/json' });
+                    
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `relatorio_detalhado_${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                    showAlert('Relatório detalhado baixado com sucesso!', 'success');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showAlert('Erro ao baixar relatório: ' + error.message, 'error');
+            }
+        }
+
+        async function limparCache() {
+            if (!confirm('Tem certeza que deseja limpar o cache? Isso fará com que todos os endereços sejam reprocessados.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/limpar-cache', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Cache limpo com sucesso!', 'success');
+                    carregarEstimativa();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                showAlert('Erro ao limpar cache: ' + error.message, 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 10000);
+        }
+
+        function hideAlert() {
+            document.getElementById('alertContainer').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

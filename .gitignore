@@ -1,0 +1,46 @@
+# Logs do servidor
+*.log
+
+# Dependências do Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Arquivos de backup
+*.bak
+*.backup
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Dados de cache
+.cache/
+
+# Arquivos de cache do sistema de geocodificação
+geocoding-cache.json
+geocoding-progress.json
+clientes-backup-*.json
+teste-30k-amostra.json
+
+# Arquivos de output
+dist/
+build/
